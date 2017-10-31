@@ -1,2 +1,2 @@
 # RL_Algorithms
-IMplementation of RL_algorithms
+Implementation of RL_algorithms
