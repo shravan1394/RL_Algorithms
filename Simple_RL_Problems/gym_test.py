@@ -20,13 +20,29 @@ G = 20000;
 S = F = 0;
 H = -15000;
 
+imR = np.array([[S,F,F,F,F,F,F,F,
+                 F,F,F,F,F,F,F,F,
+                 F,F,F,H,F,F,F,F,
+                 F,F,F,F,F,H,F,F,
+                 F,F,F,H,F,F,F,F,
+                 F,H,H,F,F,F,H,F,
+                 F,H,F,F,H,F,H,F,
+                 F,F,F,H,F,F,F,G]]);
+
+
 
 """
 # Rewards for 'FrozenLake-v0'
 G = 200;
 S = F = 0;
 H = -100;
+
+imR = np.array([[S,F,F,F,
+                 F,H,F,H,
+                 F,F,F,H,
+                 H,F,F,G]]);
 """
+
 
 def TrProbGen(direction):
 	
@@ -67,22 +83,6 @@ def TrProbGen(direction):
 
 
 trProb = {0:TrProbGen(0),1:TrProbGen(1),2:TrProbGen(2),3:TrProbGen(3)};
-
-"""
-imR = np.array([[S,F,F,F,
-				 F,H,F,H,
-				 F,F,F,H,
-				 H,F,F,G]]);
-"""
-
-imR = np.array([[S,F,F,F,F,F,F,F,
-				 F,F,F,F,F,F,F,F,
-				 F,F,F,H,F,F,F,F,
-				 F,F,F,F,F,H,F,F,
-				 F,F,F,H,F,F,F,F,
-				 F,H,H,F,F,F,H,F,
-				 F,H,F,F,H,F,H,F,
-				 F,F,F,H,F,F,F,G]]);
 
 expR = {0:trProb[0].dot(imR.T),1:trProb[1].dot(imR.T),2:trProb[2].dot(imR.T),3:trProb[3].dot(imR.T)};
 
