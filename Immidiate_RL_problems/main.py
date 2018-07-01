@@ -3,13 +3,13 @@ from BanditArmClass import *
 from ValFuncOptimizer import *
 from PacOptimizer import *
 
-N = 10;
-states = 500;
+N = 100000;
+states = 00;
 problems = 2000
 eps = 0.0;
 tau = 0.2;
-epsi = 0.01;
-delta = 0.05
+epsi = 2.0;
+delta = 1.0
 #soft_cache = (tau); # use this cache for softmax mode 
 #eps_cache = (eps);# use this cache for eps-greedy mode
 
@@ -43,6 +43,8 @@ for i in range(1,states):
 
 ## PAC Optimal arm
 opti_arm = PacArm(epsi, delta, action_cache, mode = 'naive');
+print(opti_arm == Arms.AStar);
+opti_arm = PacArm(epsi, delta, action_cache, mode = 'median');
 print(opti_arm == Arms.AStar);
 Arms.plot(avg_reward, optim_action);
 

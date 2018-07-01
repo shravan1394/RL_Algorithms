@@ -23,11 +23,14 @@ class BanditArm:
 
 	def pullArm(self, N = None, problems = None, action = None):
 
-		if problems == None and N == None and (action != None).all():
+		if N == None:
+			N = self.N;
+
+		if problems == None:
 			R = self.var[action] * self.X(self.problems) + self.mean[action];
 
-		elif problems != None and N != None:
-			R = self.var[:, None] * self.X(N, problems) + self.mean[:, None]; 
+		else: 
+			R = self.var[action] * self.X(problems, N) + self.mean[action]; 
 
 		return R;
 
