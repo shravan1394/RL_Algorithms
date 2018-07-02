@@ -11,9 +11,10 @@ eps = 0.0001;
 
 
 success = 0;
-episodes  = 1000;
+episodes  = 50000;
 timeSteps = 500;
 goal = n * n - 1;
+
 
 # Rewards for 'FrozenLake8x8-v0'
 G = 20000;
@@ -33,7 +34,7 @@ imR = np.array([[S,F,F,F,F,F,F,F,
 
 """
 # Rewards for 'FrozenLake-v0'
-G = 200;
+G = 170;
 S = F = 0;
 H = -100;
 
@@ -88,7 +89,7 @@ expR = {0:trProb[0].dot(imR.T),1:trProb[1].dot(imR.T),2:trProb[2].dot(imR.T),3:t
 
 DPSolve = DP_Solns_RL(n, trProb, expR, eps, gamma);
 
-DPSolve.ValueIteration();
+#DPSolve.ValueIteration("Vectorized");
 
 for j in range(1):
 	for i_episode in range(episodes):
@@ -97,19 +98,22 @@ for j in range(1):
 			
 			act = DPSolve.action(observation);
 			observation, reward, done, info = env.step(act);
+			DPSolve.ValueIteration("RTDP", observation);
 			if done:
 				
 				if observation == goal:
-					success+=1;
+					success += 1;
 					print("congrats!! you achieved after " + str(i_episode) + " episodes");
+					#env.render();
 				#else:
 					#print("uh oh!!. You fell :(");
 				break;
-	if(t == timeSteps - 1):
-		print("Reached {} steps without falling".format(timeSteps));
+		if(t == timeSteps - 1):
+			print("Reached {} steps without falling".format(timeSteps));
 
 env.close();
 
 print("You will reach your goal with a {}% success".format((success / episodes) * 100));  
 
-
+#print(DPSolve.Policy);
+#print(DPSolve.V);

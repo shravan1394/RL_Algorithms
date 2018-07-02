@@ -14,9 +14,9 @@ class DP_Solns_RL:
 		self.eps = eps;
 		self.gamma = gamma;
 		self.V = np.random.rand(n * n, 1); 
-		self.Policy = np.array([]);
+		self.Policy = np.random.randint(4, size = (n * n, 1));
 
-	def ValueIteration(self, mode = "Iterative"):
+	def ValueIteration(self, mode = "Iterative", cache = None):
 	
 	
 
@@ -33,6 +33,20 @@ class DP_Solns_RL:
 				else:
 					self.V = Vn;
 
+		if mode == "RTDP":
+			
+			obs = cache;
+			L = np.array([self.expR[i][obs] + self.gamma * self.trProb[i][obs][None, :].dot(self.V) for i in range(4) ]).reshape(4, 1);
+
+			self.V[obs] = np.max(L,0);
+			self.Policy[obs] = np.argmax(L,0);
+
+		if mode == "Vectorized": # still working on this!!
+
+			L = np.array([np.linalg.inv(np.identity(self.n * self.n) - self.gamma * self.trProb[i]).dot(self.expR[i]) for i in range(4)]).reshape(4, self.n * self.n);
+			print(L);
+			self.V = np.max(L,0);
+			self.Policy = np.argmax(L,0);
 
 	def action(self, observation):
 		
