@@ -11,7 +11,7 @@ eps = 0.0001;
 
 
 success = 0;
-episodes  = 50000;
+episodes  = 10000;
 timeSteps = 500;
 goal = n * n - 1;
 
@@ -20,6 +20,7 @@ goal = n * n - 1;
 G = 20000;
 S = F = 0;
 H = -15000;
+
 
 imR = np.array([[S,F,F,F,F,F,F,F,
                  F,F,F,F,F,F,F,F,
@@ -34,7 +35,7 @@ imR = np.array([[S,F,F,F,F,F,F,F,
 
 """
 # Rewards for 'FrozenLake-v0'
-G = 170;
+G = 200;
 S = F = 0;
 H = -100;
 
@@ -42,8 +43,8 @@ imR = np.array([[S,F,F,F,
                  F,H,F,H,
                  F,F,F,H,
                  H,F,F,G]]);
-"""
 
+"""
 
 def TrProbGen(direction):
 	
@@ -89,18 +90,20 @@ expR = {0:trProb[0].dot(imR.T),1:trProb[1].dot(imR.T),2:trProb[2].dot(imR.T),3:t
 
 DPSolve = DP_Solns_RL(n, trProb, expR, eps, gamma);
 
-#DPSolve.ValueIteration("Vectorized");
+DPSolve.PolicyIteration();
 
 for j in range(1):
 	for i_episode in range(episodes):
 		observation = env.reset();
+		visitedStates = [observation];
 		for t in range(timeSteps):
-			
+
 			act = DPSolve.action(observation);
 			observation, reward, done, info = env.step(act);
-			DPSolve.ValueIteration("RTDP", observation);
+			visitedStates.append(observation);
+			#DPSolve.ValueIteration("RTDP", observation);
 			if done:
-				
+				#DPSolve.PolicyIteration("GPI", visitedStates);
 				if observation == goal:
 					success += 1;
 					print("congrats!! you achieved after " + str(i_episode) + " episodes");
@@ -115,5 +118,5 @@ env.close();
 
 print("You will reach your goal with a {}% success".format((success / episodes) * 100));  
 
-#print(DPSolve.Policy);
-#print(DPSolve.V);
+print(DPSolve.Policy.reshape(n, n));
+print(DPSolve.V);
