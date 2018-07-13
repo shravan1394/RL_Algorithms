@@ -9,42 +9,37 @@ import numpy as np
 
 class DP_Solns_RL:
 
-	def __init__(self, n, trProb, expR, eps, gamma):
-		
-		self.n = n;
-		self.trProb = trProb;
-		self.expR = expR;
-		self.eps = eps;
-		self.gamma = gamma;
-		self.V = np.random.rand(n * n, 1); 
-		self.Policy = np.random.randint(4, size = (self.n * self.n, 1));
-		#np.array([[1, 2, 1, 0, 0, 2, 1, 0, 3, 2, 1, 0, 2, 2, 1, 0]]).T; #one of the solns for frozenLake-v0
+	def __init__(self, MDP):
+
+		self.MDP = MDP;		
+		self.V = np.random.rand(self.MDP.nSta, 1); 
+		self.Policy = np.random.randint(self.MDP.nAct, size = (self.MDP.nSta, 1));
+		#self.Policy = np.array([[0, 3, 3, 3, 0, 0, 0, 0, 3, 1, 0, 0, 0, 2, 1, 0]]).T; #one of the solns for frozenLake-v0
 
 	def ValueIteration(self, mode = "Iterative", cache = None):
 	
 	
 
 		if mode == "Iterative":
+
 			while True:
 	
-				L = np.array([self.expR[i] + self.gamma * self.trProb[i].dot(self.V) for i in range(4) ]).reshape(4,self.n * self.n);
-				Vn = np.max(L,0).T[:,None];
-				self.Policy = np.argmax(L,0).T[:,None];
-				print (np.linalg.norm(Vn-self.V));
-				if np.linalg.norm(Vn-self.V) < self.eps * (1 - self.gamma)/(2 * self.gamma):
+				L = np.array([self.MDP.expR[i] + self.MDP.gamma * self.MDP.trP[i].dot(self.V) for i in range(self.MDP.nAct) ]).reshape(self.MDP.nAct, self.MDP.nSta);
+				Vn = np.max(L, 0).T[:, None];
+				self.Policy = np.argmax(L, 0).T[:, None];
+				print (np.linalg.norm(Vn - self.V));
+				if np.linalg.norm(Vn - self.V) < self.MDP.eps * (1 - self.MDP.gamma)/(2 * self.MDP.gamma):
 					self.V = Vn;
 					break;
 				else:
 					self.V = Vn;
 
-		if mode == "RTDP":
+		if mode == "RTDP": # extreme GPI
 			
-			obs = cache;
-			L = np.array([self.expR[i][obs] + self.gamma * self.trProb[i][obs][None, :].dot(self.V) for i in range(4) ]).reshape(4, 1);
-
-			self.V[obs] = np.max(L,0); 
-
-			self.Policy[obs] = np.argmax(L,0);
+			eps, obs = cache;
+			L = np.array([self.MDP.expR[i][obs] + self.MDP.gamma * self.MDP.trP[i][obs][None, :].dot(self.V) for i in range(self.MDP.nAct) ]).reshape(self.MDP.nAct, 1);
+			self.V[obs] = np.random.choice(np.array([np.random.choice(L[L != np.max(L, 0)], 1), np.max(L, 0)])[:, 0], 1, p = [eps, 1 - eps]);
+			self.Policy[obs] = np.argmax(L == self.V[obs]);
 
 
 
@@ -52,51 +47,22 @@ class DP_Solns_RL:
 		
 		if mode == "Iterative": 
 
-
 			while True:
+
 				#policy eval
-
-				R = np.array([self.expR[int(i)][j] for (i,j) in zip(self.Policy,range(self.n * self.n))]);
-
-				TrP = np.array([self.trProb[int(i)][j, :] for (i,j) in zip(self.Policy,range(self.n * self.n))]);
-
-				self.V = np.linalg.inv(np.identity(self.n * self.n) - self.gamma * TrP).dot(R) ;
+				R = np.array([self.MDP.expR[int(i)][j] for (i,j) in zip(self.Policy,range(self.MDP.nSta))]);
+				TrP = np.array([self.MDP.trP[int(i)][j, :] for (i,j) in zip(self.Policy,range(self.MDP.nSta))]);
+				self.V = np.linalg.inv(np.identity(self.MDP.nSta) - self.MDP.gamma * TrP).dot(R);
 
 				# policy imporvement
-				L = np.array([self.expR[i] + self.gamma * self.trProb[i].dot(self.V) for i in range(4) ]).reshape(4,self.n * self.n);
-
-				Pin = np.argmax(L,0).T[:,None];
-				
+				L = np.array([self.MDP.expR[i] + self.MDP.gamma * self.MDP.trP[i].dot(self.V) for i in range(self.MDP.nAct) ]).reshape(self.MDP.nAct, self.MDP.nSta);
+				Pin = np.argmax(L, 0).T[:, None];
 				if (Pin == self.Policy).all():
 					break;
+				elif(np.linalg.norm(np.max(L, 0).T[:, None] - self.V) < self.MDP.eps * (1 - self.MDP.gamma)/(2 * self.MDP.gamma)):
+					break;
+				self.Policy = Pin;	
 
-				self.Policy = Pin;
-
-
-		if mode == "GPI": # working on this!!!!!
-			
-
-			visitedStates = cache;
-
-			#policy eval
-
-			R = np.array([self.expR[int(i)][j] for (i,j) in zip(self.Policy,range(self.n * self.n))]);
-
-			TrP = np.array([self.trProb[int(i)][j, :] for (i,j) in zip(self.Policy,range(self.n * self.n))]);
-
-			self.V[visitedStates] = np.linalg.inv(np.identity(self.n * self.n) - self.gamma * TrP).dot(R)[visitedStates] ;
-
-
-			# policy imporvement
-			L = np.array([self.expR[i] + self.gamma * self.trProb[i].dot(self.V) for i in range(4) ]).reshape(4,self.n * self.n);
-
-			self.Policy[visitedStates]  = np.argmax(L,0).T[:,None][visitedStates];
-			
-
-
-
-				
-				
 
 	def action(self, observation):
 		
